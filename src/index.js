@@ -21,86 +21,78 @@ class Grid extends React.Component {
     }
 
     fillCells(startValues) {
-        if(!startValues) {
-            // Initialize cells to null
-            let tempState = [];
-            for(let i = 0; i < 9; i++) {
-                let temp = [];
-                for(let j = 0; j < 9; j++) {
-                    let tempCell = {
-                        value: null,
-                        id: (i*9) + (j),
-                        mutable: true,
-                        row: i,
-                        col: j,
-                        box: null,
-                    };
-                    switch(true) {
-                        case(tempCell.id < 9):
-                            tempCell.box = 0;
-                            break;
-                        case(tempCell.id < 18):
-                            tempCell.box = 1;
-                            break;
-                        case(tempCell.id < 27):
-                            tempCell.box = 2;
-                            break;
-                        case(tempCell.id < 36):
-                            tempCell.box = 3;
-                            break;
-                        case(tempCell.id < 45):
-                            tempCell.box = 4;
-                            break;
-                        case(tempCell.id < 54):
-                            tempCell.box = 5;
-                            break;
-                        case(tempCell.id < 63):
-                            tempCell.box = 6;
-                            break;
-                        case(tempCell.id < 72):
-                            tempCell.box = 7;
-                            break;
-                        case(tempCell.id < 81):
-                            tempCell.box = 8;
-                            break;
-
-                    }
-                    temp[j] = tempCell;
-                }
-                tempState[i] = temp;
-            }
-            console.log(tempState);
-            return tempState;
-        } else if(startValues) {
-            // Read sudoku game from array of integers
-            let tempState = [];
-            for(let i = 0; i < 9; i++) {
-                let temp = [];
-                for(let j = 0; j < 9; j++) {
-                    let tempCell = {
+        // Initialize cells to null if no startValues are passed
+        let tempState = [];
+        for(let i = 0; i < 9; i++) {
+            let tempRow = [];
+            for(let j = 0; j < 9; j++) {
+                let tempCell;
+                if(startValues) {
+                    tempCell = {
                         value: startValues[i*9 + j],
                         id: (i*9) + (j),
-                        mutable: true,
+                        isMutable: true,
                         row: i,
                         col: j,
                         box: null,
                     };
                     if(tempCell.value !== null) {
-                        tempCell.mutable = false;
+                        tempCell.isMutable = false;
                     }
-
-                    temp[j] = tempCell;
+                } else {
+                    tempCell = {
+                        value: null,
+                        id: (i*9) + (j),
+                        isMutable: true,
+                        row: i,
+                        col: j,
+                        box: null,
+                    };
                 }
-                tempState[i] = temp;
+                // Determine which box the cell is in
+                switch(true) {
+                    case(tempCell.id < 9):
+                        tempCell.box = 0;
+                        break;
+                    case(tempCell.id < 18):
+                        tempCell.box = 1;
+                        break;
+                    case(tempCell.id < 27):
+                        tempCell.box = 2;
+                        break;
+                    case(tempCell.id < 36):
+                        tempCell.box = 3;
+                        break;
+                    case(tempCell.id < 45):
+                        tempCell.box = 4;
+                        break;
+                    case(tempCell.id < 54):
+                        tempCell.box = 5;
+                        break;
+                    case(tempCell.id < 63):
+                        tempCell.box = 6;
+                        break;
+                    case(tempCell.id < 72):
+                        tempCell.box = 7;
+                        break;
+                    case(tempCell.id < 81):
+                        tempCell.box = 8;
+                        break;
+                    default:
+                        break;
+                }
+                tempRow[j] = tempCell;
             }
-            return tempState;
+            tempState[i] = tempRow;
         }
+        console.log(tempState);
+        return tempState;
     }
 
     handleClick(id) {
         let newCells = this.state.cells.slice();
         let changedCell = this.getCell(id);
-        if(changedCell.mutable === true) {
+        if(changedCell.isMutable === true) {
             if(changedCell.value === null) {
                 changedCell.value = 1;
             } else if(changedCell.value === 9) {
@@ -128,22 +120,40 @@ class Grid extends React.Component {
         }
     }
 
-    setCell(id, cell, state) {
+    // Set cell
+    setCell(id, cell) {
         for(let i = 0; i < 9; i++) {
             for(let j = 0; j < 9; j++) {
-                if(state[i][j].id === id) {
-                    state[i][j] = cell;
+                if(this.state.cells[i][j].id === id) {
+                    let temp = this.state.cells;
+                    temp[i][j] = cell;
+                    this.setState({
+                        cells: temp,
+                    })
                 }
             }
         }
     }
 
+    // Iterate over cells and check against solution
+    checkIfSolved() {
+        for(let i = 0; i < 9; i++) {
+            for(let j = 0; j < 9; j++) {
+                if(this.state.cells[i][j].value === this.state.solution[i][j]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     renderCell(id) {
+        const cell = this.getCell(id);
         return (
             <Cell key={id}
-                value={this.getCell(id).value}
+                value={cell.value}
                 onClick={() => this.handleClick(id)}
-                  className={this.getCell(id).boxEdge}
+                  className={"cell"}
             />
         );
     }
